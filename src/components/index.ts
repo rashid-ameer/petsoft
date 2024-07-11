@@ -5,3 +5,7 @@ export { default as BackgroundPattern } from "@/components/background-pattern";
 export { default as H1 } from "@/components/h1";
 export { default as Stats } from "@/components/stats";
 export { default as Branding } from "@/components/branding";
+export { default as SearchForm } from "@/components/search-form";
+export { default as PetList } from "@/components/pet-list";
+export { default as PetDetails } from "@/components/pet-details";
+export { default as ContentBlock } from "@/components/content-block";
