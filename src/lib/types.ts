@@ -4,7 +4,7 @@ export type Pet = {
   ownerName: string;
   imageUrl: string;
   age: number;
-  notes: string[];
+  notes: string;
 };
 
 export type SelectedPetId = string | null;

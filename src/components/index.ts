@@ -9,3 +9,5 @@ export { default as SearchForm } from "@/components/search-form";
 export { default as PetList } from "@/components/pet-list";
 export { default as PetDetails } from "@/components/pet-details";
 export { default as ContentBlock } from "@/components/content-block";
+export { default as PetButton } from "@/components/pet-button";
+export { default as PetForm } from "@/components/pet-form";
