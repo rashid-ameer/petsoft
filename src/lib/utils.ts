@@ -1,12 +1,12 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Pet } from "./types";
+import { Pet, PetEssentials } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function extractFormDataAndFormat(formData: FormData) {
+export function extractFormDataAndFormat(formData: FormData): PetEssentials {
   const pet = {
     name: formData.get("name") as string,
     ownerName: formData.get("ownerName") as string,

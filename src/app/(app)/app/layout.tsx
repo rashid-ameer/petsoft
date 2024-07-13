@@ -1,6 +1,7 @@
 import BackgroundPattern from "@/components/background-pattern";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
+import { Toaster } from "@/components/ui/sonner";
 import PetContextProvider from "@/contexts/pet-context-provider";
 import SearchContextProvider from "@/contexts/search-context-provider";
 import prisma from "@/lib/db";
@@ -18,6 +19,7 @@ async function AppLayout({ children }: { children: React.ReactNode }) {
         </SearchContextProvider>
         <Footer />
       </div>
+      <Toaster position="top-right" />
     </>
   );
 }

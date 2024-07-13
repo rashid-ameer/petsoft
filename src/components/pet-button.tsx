@@ -12,19 +12,28 @@ import {
 } from "@/components/ui/dialog";
 import PetForm from "./pet-form";
 import { useState } from "react";
+import { flushSync } from "react-dom";
 
 type Props = {
   children?: React.ReactNode;
   actionType: "add" | "edit" | "checkout";
   className?: string;
+  disabled?: boolean;
   onClick?: () => void;
 };
-function PetButton({ children, actionType, className, onClick }: Props) {
+function PetButton({
+  children,
+  actionType,
+  className,
+  onClick,
+  disabled,
+}: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   if (actionType === "checkout") {
     return (
       <Button
         variant="secondary"
+        disabled={disabled}
         className={cn(className)}
         onClick={onClick}>
         {children}
@@ -63,7 +72,9 @@ function PetButton({ children, actionType, className, onClick }: Props) {
 
         <PetForm
           actionType={actionType}
-          onFormSubmission={() => setIsFormOpen(false)}
+          onFormSubmission={() => {
+            flushSync(() => setIsFormOpen(false));
+          }}
         />
       </DialogContent>
     </Dialog>

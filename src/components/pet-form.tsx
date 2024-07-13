@@ -2,8 +2,10 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { PetFormButton } from "@/components";
 import { usePetContext } from "@/lib/hooks";
+import { addPet, editPet } from "@/actions/actions";
+import { toast } from "sonner";
 
 type Props = {
   actionType: "add" | "edit";
@@ -11,25 +13,19 @@ type Props = {
 };
 
 function PetForm({ actionType, onFormSubmission }: Props) {
-  const { handleAddPet, selectedPetId, selectedPet, handleEditPet } =
-    usePetContext();
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const formData = new FormData(e.currentTarget);
-    if (actionType === "add") {
-      handleAddPet(formData);
-    } else if (actionType === "edit" && selectedPetId) {
-      handleEditPet(selectedPetId, formData);
-    }
-
-    onFormSubmission();
-  };
+  const { selectedPet, handleAddPet, handleEditPet } = usePetContext();
 
   return (
     <form
-      onSubmit={handleSubmit}
+      action={async (formData) => {
+        onFormSubmission();
+
+        if (actionType === "add") {
+          await handleAddPet(formData);
+        } else if (actionType === "edit" && selectedPet?.id) {
+          handleEditPet(selectedPet.id, formData);
+        }
+      }}
       className="space-y-3">
       <div className="space-y-1">
         <Label htmlFor="name">Name</Label>
@@ -85,11 +81,7 @@ function PetForm({ actionType, onFormSubmission }: Props) {
         />
       </div>
 
-      <Button
-        type="submit"
-        className="flex ml-auto">
-        {actionType === "add" ? "Add a new Pet" : "Submit"}
-      </Button>
+      <PetFormButton actionType={actionType} />
     </form>
   );
 }

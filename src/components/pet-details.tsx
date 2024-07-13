@@ -4,6 +4,8 @@ import { usePetContext } from "@/lib/hooks";
 import { Pet } from "@/lib/types";
 import Image from "next/image";
 import PetButton from "./pet-button";
+import { deletePet } from "@/actions/actions";
+import { useTransition } from "react";
 
 function PetDetails() {
   const { selectedPet } = usePetContext();
@@ -41,6 +43,7 @@ function EmptyContent() {
 
 function TopContent({ pet }: Props) {
   const { handleCheckoutPet } = usePetContext();
+
   return (
     <div className="flex items-center gap-x-5 px-8 py-5 border-b border-black/5">
       <Image
