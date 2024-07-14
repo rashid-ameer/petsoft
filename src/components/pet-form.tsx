@@ -1,84 +1,114 @@
 "use client";
+import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PetFormButton } from "@/components";
 import { usePetContext } from "@/lib/hooks";
-import { addPet, editPet } from "@/actions/actions";
-import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { petFormSchema } from "@/lib/schemas";
+import { DEFAULT_PET_IMAGE_URL } from "@/lib/constants";
 
 type Props = {
   actionType: "add" | "edit";
   onFormSubmission: () => void;
 };
 
+type ReactHookFormFields = z.infer<typeof petFormSchema>;
+
 function PetForm({ actionType, onFormSubmission }: Props) {
   const { selectedPet, handleAddPet, handleEditPet } = usePetContext();
 
+  const {
+    register,
+    trigger,
+    getValues,
+    formState: { errors },
+  } = useForm<ReactHookFormFields>({
+    resolver: zodResolver(petFormSchema),
+    defaultValues: {
+      name: selectedPet?.name,
+      ownerName: selectedPet?.ownerName,
+      imageUrl: selectedPet?.imageUrl,
+      age: selectedPet?.age,
+      notes: selectedPet?.notes,
+    },
+  });
+
+  const formAction = async () => {
+    const isValidForm = await trigger();
+    if (!isValidForm) return;
+
+    onFormSubmission();
+
+    let data = getValues();
+    data.imageUrl = data.imageUrl || DEFAULT_PET_IMAGE_URL;
+
+    if (actionType === "add") {
+      await handleAddPet(data);
+    } else if (actionType === "edit" && selectedPet?.id) {
+      handleEditPet(selectedPet.id, data);
+    }
+  };
+
   return (
     <form
-      action={async (formData) => {
-        onFormSubmission();
-
-        if (actionType === "add") {
-          await handleAddPet(formData);
-        } else if (actionType === "edit" && selectedPet?.id) {
-          handleEditPet(selectedPet.id, formData);
-        }
-      }}
+      action={formAction}
       className="space-y-3">
       <div className="space-y-1">
         <Label htmlFor="name">Name</Label>
         <Input
           id="name"
-          type="text"
-          name="name"
-          required
-          defaultValue={actionType === "add" ? "" : selectedPet?.name}
+          {...register("name")}
         />
+        {errors.name && (
+          <p className="text-xs text-red-500">{errors.name.message}</p>
+        )}
       </div>
 
       <div className="space-y-1">
         <Label htmlFor="name">Owner Name</Label>
         <Input
           id="ownerName"
-          type="text"
-          name="ownerName"
-          required
-          defaultValue={actionType === "add" ? "" : selectedPet?.ownerName}
+          {...register("ownerName")}
         />
+        {errors.ownerName && (
+          <p className="text-xs text-red-500">{errors.ownerName.message}</p>
+        )}
       </div>
 
       <div className="space-y-1">
         <Label htmlFor="name">Image Url</Label>
         <Input
           id="imageUrl"
-          type="text"
-          name="imageUrl"
-          defaultValue={actionType === "add" ? "" : selectedPet?.imageUrl}
+          {...register("imageUrl")}
         />
+        {errors.imageUrl && (
+          <p className="text-xs text-red-500">{errors.imageUrl.message}</p>
+        )}
       </div>
 
       <div className="space-y-1">
         <Label htmlFor="name">Age</Label>
         <Input
           id="age"
-          type="number"
-          name="age"
-          required
-          defaultValue={actionType === "add" ? "" : selectedPet?.age}
+          {...register("age")}
         />
+        {errors.age && (
+          <p className="text-xs text-red-500">{errors.age.message}</p>
+        )}
       </div>
 
       <div className="space-y-1">
         <Label htmlFor="notes">Notes</Label>
         <Textarea
           id="notes"
-          rows={3}
-          name="notes"
-          required
-          defaultValue={actionType === "add" ? "" : selectedPet?.notes}
+          {...register("notes")}
         />
+        {errors.notes && (
+          <p className="text-xs text-red-500">{errors.notes.message}</p>
+        )}
       </div>
 
       <PetFormButton actionType={actionType} />

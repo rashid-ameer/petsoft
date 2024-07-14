@@ -1,6 +1,6 @@
 "use client";
 import { addPet, deletePet, editPet } from "@/actions/actions";
-import { Pet, SelectedPetId } from "@/lib/types";
+import { Pet, PetEssentials, SelectedPetId } from "@/lib/types";
 import { extractFormDataAndFormat } from "@/lib/utils";
 import { createContext, useOptimistic, useState } from "react";
 import { toast } from "sonner";
@@ -12,8 +12,8 @@ type ContextProps = {
   noOfPets: number;
   handleSelectedPetId: (id: string) => void;
   handleCheckoutPet: (id: string) => Promise<void>;
-  handleAddPet: (formData: FormData) => Promise<void>;
-  handleEditPet: (id: string, formData: FormData) => Promise<void>;
+  handleAddPet: (petData: PetEssentials) => Promise<void>;
+  handleEditPet: (id: string, petData: PetEssentials) => Promise<void>;
 };
 
 type ProviderProps = {
@@ -60,8 +60,7 @@ function PetContextProvider({ data, children }: ProviderProps) {
     setSelectedPetId(null);
   };
 
-  const handleAddPet = async (formData: FormData) => {
-    const petData = extractFormDataAndFormat(formData);
+  const handleAddPet = async (petData: PetEssentials) => {
     const pet = { id: Date.now().toString(), ...petData };
 
     setOptimisticPets({ action: "ADD", payload: { pet } });
@@ -72,8 +71,7 @@ function PetContextProvider({ data, children }: ProviderProps) {
     }
   };
 
-  const handleEditPet = async (petId: string, formData: FormData) => {
-    const petData = extractFormDataAndFormat(formData);
+  const handleEditPet = async (petId: string, petData: PetEssentials) => {
     setOptimisticPets({ action: "EDIT", payload: { id: petId, pet: petData } });
     const result = await editPet(petId, petData);
     if (!result.success) {
