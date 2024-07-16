@@ -1,7 +1,6 @@
 "use client";
 import { addPet, deletePet, editPet } from "@/actions/actions";
 import { Pet, PetEssentials, SelectedPetId } from "@/lib/types";
-import { extractFormDataAndFormat } from "@/lib/utils";
 import { createContext, useOptimistic, useState } from "react";
 import { toast } from "sonner";
 
