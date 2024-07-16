@@ -1,11 +1,10 @@
 import Image from "next/image";
+import logo from "../../public/logo.svg";
 function Logo() {
   return (
     <Image
-      src="/logo.svg"
+      src={logo}
       alt=""
-      width={50}
-      height={50}
       priority
     />
   );
