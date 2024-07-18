@@ -1,10 +1,7 @@
 import NextAuth, { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
 import prisma from "./db";
-import bcrypt from "bcryptjs";
-import { authSchema } from "./schemas";
 
-const config: NextAuthConfig = {
+export const nextAuthEdgeConfig = {
   pages: {
     signIn: "/login",
   },
@@ -12,42 +9,6 @@ const config: NextAuthConfig = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
     strategy: "jwt",
   },
-  providers: [
-    Credentials({
-      // runs on every login attempt
-      async authorize(credentials) {
-        // validate form data
-        const validationResult = authSchema.safeParse(credentials);
-
-        if (!validationResult.success) {
-          return null;
-        }
-
-        const { email, password } = validationResult.data;
-
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
-
-        if (!user) {
-          console.log("No user found");
-          return null;
-        }
-
-        const passwordMatch = await bcrypt.compare(
-          password,
-          user.hashedPassword
-        );
-
-        if (!passwordMatch) {
-          console.log("Password does not match");
-          return null;
-        }
-
-        return user;
-      },
-    }),
-  ],
   callbacks: {
     // runs on every request with middleware
     authorized: ({ auth, request }) => {
@@ -126,11 +87,7 @@ const config: NextAuthConfig = {
       return session;
     },
   },
-};
+  providers: [],
+} satisfies NextAuthConfig;
 
-export const {
-  auth,
-  signIn,
-  signOut,
-  handlers: { GET, POST },
-} = NextAuth(config);
+export const { auth } = NextAuth(nextAuthEdgeConfig);
