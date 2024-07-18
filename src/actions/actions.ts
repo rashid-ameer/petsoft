@@ -2,36 +2,91 @@
 
 import { signIn, signOut } from "@/lib/auth";
 import prisma from "@/lib/db";
-import { petFormSchema, petIdSchema } from "@/lib/schemas";
-import { sleep } from "@/lib/utils";
+import { authSchema, petFormSchema, petIdSchema } from "@/lib/schemas";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { checkAuth } from "@/lib/server-utils";
+import { Prisma } from "@prisma/client";
+import { AuthError } from "next-auth";
+
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // ---- user actions ----
-export async function login(formData: FormData) {
-  const authData = Object.fromEntries(formData.entries());
+export async function login(prevState: unknown, formData: unknown) {
+  // check if the format is valid
+  if (!(formData instanceof FormData)) {
+    return {
+      success: false,
+      message: "Invalid form data",
+    };
+  }
 
-  await signIn("credentials", authData);
+  try {
+    await signIn("credentials", formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case "CredentialsSignin":
+          return {
+            success: false,
+            message: "Incorrect email or password",
+          };
+      }
+    }
+
+    throw error; // next.js redirect error
+  }
 }
 
-export async function signup(formData: FormData) {
-  const hashedPassword = await bcrypt.hash(
-    formData.get("password") as string,
-    10
-  );
+export async function signup(prevState: unknown, formData: FormData) {
+  // check the format of data
+  if (!(formData instanceof FormData)) {
+    return {
+      success: false,
+      message: "Invalid form data",
+    };
+  }
+
+  // validate formdata
+  const authData = Object.fromEntries(formData.entries());
+  const validationResult = authSchema.safeParse(authData);
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      message: "Invalid form data",
+    };
+  }
+
+  const hashedPassword = await bcrypt.hash(validationResult.data.password, 10);
 
   const user = {
-    email: formData.get("email") as string,
+    email: validationResult.data.email,
     hashedPassword,
   };
 
-  await prisma.user.create({
-    data: user,
-  });
+  try {
+    await prisma.user.create({
+      data: user,
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return {
+          success: false,
+          message: "Email already exists.",
+        };
+      }
+    }
+  }
 
-  await signIn("credentials", formData);
+  await signIn("credentials", validationResult.data);
+
+  return {
+    success: true,
+    message: "New user created successfully",
+  };
 }
 
 export async function logout() {
@@ -39,8 +94,6 @@ export async function logout() {
 }
 // ---- pet actions ----
 export async function addPet(pet: unknown) {
-  sleep(2000);
-
   const session = await checkAuth();
 
   const validationResult = petFormSchema.safeParse(pet);
@@ -78,8 +131,6 @@ export async function addPet(pet: unknown) {
 }
 
 export async function editPet(petId: unknown, pet: unknown) {
-  sleep(2000);
-
   // authentication check
   const session = await checkAuth();
 
@@ -143,8 +194,6 @@ export async function editPet(petId: unknown, pet: unknown) {
 }
 
 export async function deletePet(petId: unknown) {
-  sleep(2000);
-
   // authentication check
   const session = await checkAuth();
 
@@ -196,4 +245,24 @@ export async function deletePet(petId: unknown) {
     success: true,
     message: "Deleted pet successfully",
   };
+}
+
+// ---- payment actions ----
+export async function createCheckoutSession() {
+  const session = await checkAuth();
+
+  const checkoutSession = await stripe.checkout.sessions.create({
+    customer_email: session.user.email,
+    line_items: [
+      {
+        price: "price_1PdDzhKH010y8hla4x3TWEk6",
+        quantity: 1,
+      },
+    ],
+    mode: "payment",
+    success_url: `${process.env.CANONICAL_URL}/payment?success=true`,
+    cancel_url: `${process.env.CANONICAL_URL}/payment?cancelled=true`,
+  });
+
+  redirect(checkoutSession.url);
 }

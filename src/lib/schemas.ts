@@ -26,3 +26,8 @@ export const petFormSchema = z
     ...data,
     imageUrl: data.imageUrl || DEFAULT_PET_IMAGE_URL,
   }));
+
+export const authSchema = z.object({
+  email: z.string().email().max(50),
+  password: z.string().max(20),
+});

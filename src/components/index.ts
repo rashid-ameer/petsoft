@@ -14,3 +14,6 @@ export { default as PetForm } from "@/components/pet-form";
 export { default as PetFormButton } from "@/components/pet-form-button";
 export { default as AuthForm } from "@/components/auth-form";
 export { default as SignoutButton } from "@/components/signout-button";
+export { default as AuthFormButton } from "@/components/auth-form-button";
+export { default as PaymentButton } from "@/components/payment-button";
+export { default as UpdateTokenButton } from "@/components/update-token-button";
